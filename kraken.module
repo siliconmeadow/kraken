@@ -20,8 +20,6 @@ function kraken_help($path, $arg) {
  * Implements hook_form_FORM_ID_alter().
  */
 function kraken_form_system_image_toolkit_settings_alter(&$form, &$form_state) {
-  dsm($form);
-  dsm($form_state);
   $form['kraken'] = array(
   '#type' => 'container',
   '#tree' => TRUE,
@@ -36,11 +34,6 @@ function kraken_form_system_image_toolkit_settings_alter(&$form, &$form_state) {
     );
   }
   else {
-    $settings = variable_get('imageapi_optimize_krakenio', array(
-        'api_key' => '',
-        'api_secret' => '',
-      )
-    );
 
     $libraries = libraries_get_libraries();
     if (!in_array('kraken-php', array_keys($libraries))) {
@@ -49,18 +42,34 @@ function kraken_form_system_image_toolkit_settings_alter(&$form, &$form_state) {
         '#markup' => t('<strong>Note:</strong> Kraken io not detected. Kraken.io integration requires the <a href="https://github.com/kraken-io/kraken-php">Kraken-PHP library</a> to be installed in your libraries folder as kraken-php (sites/all/libraries/kraken-php).'),
       );
     }
+    else {
 
-    $form['kraken']['api_key'] = array(
-      '#title' => t('API Key'),
-      '#type' => 'textfield',
-      '#default_value' => $settings['api_key'],
-    );
+      $form['kraken']['api_key'] = array(
+        '#title' => t('API Key'),
+        '#type' => 'textfield',
+        '#default_value' => variable_get('kraken_api_key', ''),
+      );
 
-    $form['kraken']['api_secret'] = array(
-      '#title' => t('API Secret'),
-      '#type' => 'textfield',
-      '#default_value' => $settings['api_secret'],
-    );
+      $form['kraken']['api_secret'] = array(
+        '#title' => t('API Secret'),
+        '#type' => 'textfield',
+        '#default_value' => variable_get('kraken_api_secret', ''),
+      );
+      $form['#submit'][] = 'kraken_image_toolkit_settings_submit';
+    }
+  }
+}
+
+/**
+ * Form submit for system_image_toolkit_settings.
+ */
+function kraken_image_toolkit_settings_submit(&$form, &$form_state) {
+  $values = $form_state['values'];
+  if (!empty($values['kraken']['api_key'])) {
+    variable_set('kraken_api_key', $values['kraken']['api_key']);
+  }
+  if (!empty($values['kraken']['api_secret'])) {
+    variable_set('kraken_api_secret', $values['kraken']['api_secret']);
   }
 }
 
