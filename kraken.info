@@ -1,3 +1,4 @@
 name = Kraken.io
 description = Optimize images using the Kraken.io webservice
 core = 7.x
+dependencies[] = libraries

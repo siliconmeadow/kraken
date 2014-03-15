@@ -1,8 +1,8 @@
 <?php
 
 /**
- * @file kraken.module
- * TODO: Enter file description here.
+ * @file
+ * Provides optimised images via http://kraken.io.
  */
 
 /**
@@ -10,34 +10,58 @@
  */
 function kraken_help($path, $arg) {
   switch ($path) {
-    // Main module help for the block module
-    case 'admin/help#block':
-      return '<p>' . t('Blocks are boxes of content rendered into an area, or region, of a web page. The default theme Bartik, for example, implements the regions "Sidebar first", "Sidebar second", "Featured", "Content", "Header", "Footer", etc., and a block may appear in any one of these areas. The <a href="@blocks">blocks administration page</a> provides a drag-and-drop interface for assigning a block to a region, and for controlling the order of blocks within regions.', array('@blocks' => url('admin/structure/block'))) . '</p>';
-
-    // Help for another path in the block module
-    case 'admin/structure/block':
-      return '<p>' . t('This page provides a drag-and-drop interface for assigning a block to a region, and for controlling the order of blocks within regions. Since not all themes implement the same regions, or display regions in the same way, blocks are positioned on a per-theme basis. Remember that your changes will not be saved until you click the <em>Save blocks</em> button at the bottom of the page.') . '</p>';
+    // Main module help for the kraken module
+    case 'admin/help#kraken':
+      return '<p>' . t('Getting the highest quality images with the smallest file sizes can be difficult. <ahref="@krakenio">Kraken.io</a> provides a service to optimize your images and strikes a good balance between high image quality with small file sizes. This module submits the images users provide in their normal content adding and editing to Kraken.io and Kraken.io provides an optimized version which is stored locally. Configuring the kraken module is done on the <a href="@img_toolkit">image toolkit page</a>.', array('@img_toolkit' => url('admin/config/media/image-toolkit'), '@krakenio' => url('http://kraken.io'))) . '</p>';
   }
 }
 
 /**
- * Implements hook_menu().
+ * Implements hook_form_FORM_ID_alter().
  */
-function kraken_menu() {
-  $items['example'] = array(
-    'title' => 'Example Page',
-    'page callback' => 'example_page',
-    'access arguments' => array('access content'),
-    'type' => MENU_SUGGESTED_ITEM,
-  );
-  $items['example/feed'] = array(
-    'title' => 'Example RSS feed',
-    'page callback' => 'example_feed',
-    'access arguments' => array('access content'),
-    'type' => MENU_CALLBACK,
-  );
+function kraken_form_system_image_toolkit_settings_alter(&$form, &$form_state) {
+  dsm($form);
+  dsm($form_state);
+  $form['kraken'] = array(
+  '#type' => 'container',
+  '#tree' => TRUE,
+);
+  if (!function_exists('libraries_get_libraries')) {
+    $form['kraken']['library'] = array(
+      '#type' => 'markup',
+      '#markup' => t('Kraken io integration requires both:
+        <ul><li>the <a href = "http://drupal.org/project/libraries">Libraries</a> module;</li>
+        <li>the <a href="https://github.com/kraken-io/kraken-php">Kraken-PHP library</a>
+        to be installed in your libraries folder as kraken-php (sites/all/libraries/kraken-php).</li></ul>'),
+    );
+  }
+  else {
+    $settings = variable_get('imageapi_optimize_krakenio', array(
+        'api_key' => '',
+        'api_secret' => '',
+      )
+    );
 
-  return $items;
+    $libraries = libraries_get_libraries();
+    if (!in_array('kraken-php', array_keys($libraries))) {
+      $form['kraken']['library'] = array(
+        '#type' => 'markup',
+        '#markup' => t('<strong>Note:</strong> Kraken io not detected. Kraken.io integration requires the <a href="https://github.com/kraken-io/kraken-php">Kraken-PHP library</a> to be installed in your libraries folder as kraken-php (sites/all/libraries/kraken-php).'),
+      );
+    }
+
+    $form['kraken']['api_key'] = array(
+      '#title' => t('API Key'),
+      '#type' => 'textfield',
+      '#default_value' => $settings['api_key'],
+    );
+
+    $form['kraken']['api_secret'] = array(
+      '#title' => t('API Secret'),
+      '#type' => 'textfield',
+      '#default_value' => $settings['api_secret'],
+    );
+  }
 }
 
 /**
