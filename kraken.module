@@ -12,7 +12,17 @@ function kraken_help($path, $arg) {
   switch ($path) {
     // Main module help for the kraken module
     case 'admin/help#kraken':
-      return '<p>' . t('Getting the highest quality images with the smallest file sizes can be difficult. <ahref="@krakenio">Kraken.io</a> provides a service to optimize your images and strikes a good balance between high image quality with small file sizes. This module submits the images users provide in their normal content adding and editing to Kraken.io and Kraken.io provides an optimized version which is stored locally. Configuring the kraken module is done on the <a href="@img_toolkit">image toolkit page</a>.', array('@img_toolkit' => url('admin/config/media/image-toolkit'), '@krakenio' => url('http://kraken.io'))) . '</p>';
+      return '<p>' . t('Getting the highest quality images with the smallest
+        file sizes can be difficult. !krakenio provides a service to optimize
+        your images and strikes a good balance between high image quality and
+        small file sizes. This module submits the images users provide when
+        adding or editing content on your site to Kraken.io. Kraken.io returns
+        an optimized version which is stored on your site. Configuring the
+        kraken module is done on the !img_toolkit page.</p>', array(
+          '!img_toolkit' => l(t('image toolkit'), 'admin/config/media/image-toolkit'),
+          '!krakenio' => l(t('Kraken.io'), 'http://kraken.io'),
+          )
+      );
   }
 }
 
@@ -32,60 +42,64 @@ function kraken_libraries_info() {
   );
   return $libraries;
 }
+
 /**
  * Implements hook_form_FORM_ID_alter().
  */
 function kraken_form_system_image_toolkit_settings_alter(&$form, &$form_state) {
+  $kraken_api_key = '';
+  $kraken_api_secret = '';
+  $kraken_vars = variable_get('kraken', FALSE);
+  if (isset($kraken_vars['api_key'])) {
+    $kraken_api_key = $kraken_vars['api_key'];
+  }
+  if (isset($kraken_vars['api_secret'])) {
+    $kraken_api_secret = $kraken_vars['api_secret'];
+  }
   $form['kraken'] = array(
-  '#type' => 'container',
-  '#tree' => TRUE,
-);
+    '#type' => 'fieldset',
+    '#title' => 'kraken.io settings',
+    '#weight' => 5,
+    '#collapsible' => FALSE,
+  );
   if (!function_exists('libraries_get_libraries')) {
     $form['kraken']['library'] = array(
       '#type' => 'markup',
       '#markup' => t('Kraken io integration requires both:
-        <ul><li>the <a href = "http://drupal.org/project/libraries">Libraries</a> module;</li>
-        <li>the <a href="https://github.com/kraken-io/kraken-php">Kraken-PHP library</a>
-        to be installed in your libraries folder as kraken-php (sites/all/libraries/kraken-php).</li></ul>'),
+        <ul><li>the !libraries module;</li>
+        <li>the !kraken_lib to be installed in your libraries folder as
+        kraken-php (sites/all/libraries/kraken-php).</li></ul>', array(
+        '!libraries' => l(t('Libraries'), 'http://drupal.org/project/libraries'),
+        '!kraken_lib' => l(t('Kraken-PHP library'), 'https://github.com/kraken-io/kraken-php'),
+        )
+      ),
     );
-  }
-  else {
+  } else {
     $libraries = libraries_detect('kraken-php');
-    dsm($libraries);
-    if ($libraries['error']) {
+    if (isset($libraries['error'])) {
       $form['kraken']['library'] = array(
         '#type' => 'markup',
-        '#markup' => t("!error_msg Kraken.io integration requires the <a href=\"https://github.com/kraken-io/kraken-php\">Kraken-PHP library</a> to be installed in your libraries folder as kraken-php (sites/all/libraries/kraken-php).", array('!error_msg' => $libraries['error message'])),
+        '#markup' => t('!error_msg Kraken.io integration requires the
+          <a href="">Kraken-PHP library</a> to be installed in your libraries folder as kraken-php (sites/all/libraries/kraken-php).', array(
+          '!error_msg' => $libraries['error message'],
+          '!kraken-lib' => l(t('Kraken-PHP library'), 'https://github.com/kraken-io/kraken-php'),
+          )
+        ),
       );
-    }
-    else {
+    } else {
 
       $form['kraken']['api_key'] = array(
         '#title' => t('API Key'),
         '#type' => 'textfield',
-        '#default_value' => variable_get('kraken_api_key', ''),
+        '#default_value' => $kraken_api_key,
       );
 
       $form['kraken']['api_secret'] = array(
         '#title' => t('API Secret'),
         '#type' => 'textfield',
-        '#default_value' => variable_get('kraken_api_secret', ''),
+        '#default_value' => $kraken_api_secret,
       );
-      $form['#submit'][] = 'kraken_image_toolkit_settings_submit';
     }
-  }
-}
-
-/**
- * Form submit for system_image_toolkit_settings.
- */
-function kraken_image_toolkit_settings_submit(&$form, &$form_state) {
-  $values = $form_state['values'];
-  if (!empty($values['kraken']['api_key'])) {
-    variable_set('kraken_api_key', $values['kraken']['api_key']);
-  }
-  if (!empty($values['kraken']['api_secret'])) {
-    variable_set('kraken_api_secret', $values['kraken']['api_secret']);
   }
 }
 
@@ -96,7 +110,11 @@ function kraken_image_effect_info() {
   $effects = array();
   $effects['kraken_optimize'] = array(
     'label' => t('Kraken optimize'),
-    'help' => t('The <a href="@kraken_io">Kraken.io</a> service optimizes the quality of the image and minimizes file size.', array('@kraken_io' => url('http://kraken.io'))),
+    'help' => t('The @kraken_io service optimizes the
+      quality of the image and minimizes file size.', array(
+      '@kraken_io' => l(t('Kraken io'), 'http://kraken.io'),
+      )
+    ),
     'effect callback' => 'kraken_optimize',
   );
   return $effects;
@@ -106,6 +124,34 @@ function kraken_image_effect_info() {
  * Callback to optimize the image with the kraken.io service.
  */
 function kraken_optimize(&$image, $data) {
-  
-}
+  //dsm($image);
+  //dsm($data);
 
+  $libraries = libraries_detect('kraken-php');
+  /*if ($libraries['error']) {
+    drupal_set_message(t('!error_msg Kraken.io integration requires the
+          <a href="">Kraken-PHP library</a> to be installed in your libraries folder as kraken-php (sites/all/libraries/kraken-php).', array(
+      '!error_msg' => $libraries['error message'],
+      '!kraken-lib' => l(t('Kraken-PHP library'), 'https://github.com/kraken-io/kraken-php'),
+        )
+      ), 'error');
+    return FALSE;
+  }*/
+
+  $kraken_settings = variable_get('kraken', FALSE);
+dsm($settings);
+  // Ensure the API credentials have been set.
+  if (empty($settings['kraken_api_key']) || empty($settings['kraken_api_secret'])) {
+    drupal_set_message(t('Kraken.io API settings are not set. Go to !img_toolkit
+      to provide the crendentials from your !kraken_acct.', array(
+      '!img_toolkit' => l(t('Image toolkit'), 'admin/config/media/image-toolkit'),
+      '!kraken_acct' => l(t('Kraken.io account'), 'https://kraken.io/account/login'),
+        )
+      ), 'error');
+    return FALSE;
+  }
+  
+  if (!libraries_load('kraken-php')) {
+    dsm('no kraken here');
+  }
+}

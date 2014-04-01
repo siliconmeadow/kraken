@@ -26,6 +26,5 @@ function kraken_install() {
  * Implements hook_uninstall().
  */
 function kraken_uninstall() {
-  variable_del('kraken_api_key');
-  variable_del('kraken_api_secret');
+  variable_del('kraken');
 }
