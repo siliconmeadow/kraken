@@ -16,6 +16,6 @@ CONFIGURATION
 
 TODO
 ----
-1. Implement the saving/updating of file fields processed w/kraken
-2. Download/install kraken-php library
-3. Log kraken operations against the managed files
+* Download/install kraken-php library via drush in the style of views_wookmark
+* Log kraken operations/stats against the managed files
+* Provide interface for choosing webp, lossy compression, etc
