@@ -56,12 +56,15 @@ function kraken_form_system_image_toolkit_settings_alter(&$form, &$form_state) {
   if (isset($kraken_vars['api_secret'])) {
     $kraken_api_secret = $kraken_vars['api_secret'];
   }
+  
   $form['kraken'] = array(
     '#type' => 'fieldset',
     '#title' => 'kraken.io settings',
     '#weight' => 5,
     '#collapsible' => FALSE,
+    '#tree' => TRUE,
   );
+  
   if (!function_exists('libraries_get_libraries')) {
     $form['kraken']['library'] = array(
       '#type' => 'markup',
@@ -124,24 +127,24 @@ function kraken_image_effect_info() {
  * Callback to optimize the image with the kraken.io service.
  */
 function kraken_optimize(&$image, $data) {
-  //dsm($image);
-  //dsm($data);
+  //dpm($image);
+  //dpm($data);
 
   $libraries = libraries_detect('kraken-php');
-  /*if ($libraries['error']) {
+  if (isset($libraries['error'])) {
     drupal_set_message(t('!error_msg Kraken.io integration requires the
-          <a href="">Kraken-PHP library</a> to be installed in your libraries folder as kraken-php (sites/all/libraries/kraken-php).', array(
+      <a href="">Kraken-PHP library</a> to be installed in your libraries folder
+      as kraken-php (sites/all/libraries/kraken-php).', array(
       '!error_msg' => $libraries['error message'],
       '!kraken-lib' => l(t('Kraken-PHP library'), 'https://github.com/kraken-io/kraken-php'),
         )
       ), 'error');
     return FALSE;
-  }*/
+  }
 
-  $kraken_settings = variable_get('kraken', FALSE);
-dsm($settings);
   // Ensure the API credentials have been set.
-  if (empty($settings['kraken_api_key']) || empty($settings['kraken_api_secret'])) {
+  $kraken_settings = variable_get('kraken', FALSE);
+  if (empty($kraken_settings['api_key']) || empty($kraken_settings['api_secret'])) {
     drupal_set_message(t('Kraken.io API settings are not set. Go to !img_toolkit
       to provide the crendentials from your !kraken_acct.', array(
       '!img_toolkit' => l(t('Image toolkit'), 'admin/config/media/image-toolkit'),
@@ -152,6 +155,38 @@ dsm($settings);
   }
   
   if (!libraries_load('kraken-php')) {
-    dsm('no kraken here');
+    drupal_set_message(t('The kraken-php library has not loaded correctly. Please
+      review the installation instructions'), 'error');
+  }
+  
+  $kraken = new Kraken($kraken_settings['api_key'], $kraken_settings['api_secret']);
+  
+  $params = array(
+    'file' => drupal_realpath($image->source),
+    'wait' => TRUE,
+    'lossy' => TRUE,
+  );
+
+  //dpm($kraken);
+  //dpm($params);
+  
+  $data = $kraken->upload($params);
+  
+  if ($data['success']) {
+    $result = drupal_http_request($data['kraked_url']);
+    if (!isset($result->error)) {
+      file_unmanaged_save_data($result->data, $image->source, FILE_EXISTS_REPLACE);
+      watchdog('kraken.io', '@file_name was successfully processed by Kraken.io.
+        Original size: @original_size; Kraked size: @kraked_size; Total saved:
+        @saved_bytes. All figures in bytes', array(
+            '@file_name' => $data['file_name'],
+            '@original_size' => $data['original_size'],
+            '@kraked_size' => $data['kraked_size'],
+            '@saved_byes' => $data['saved_bytes'],
+          )
+        );
+      // dsm('Kraken optimised image'); // could do with a watchdog message here
+      return TRUE;
+    }
   }
 }
