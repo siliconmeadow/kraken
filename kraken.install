@@ -2,24 +2,73 @@
 
 /**
  * @file kraken.install
- * TODO: Enter file description here.
+ * Code for installing, updating and removing kraken.
  */
 
 /**
- * Implements hook_install().
+ * Implements hook_schema().
  */
-function kraken_install() {
-  // Populate the default {node_access} record.
-  /*db_insert('node_access')
-    ->fields(array(
-      'nid' => 0,
-      'gid' => 0,
-      'realm' => 'all',
-      'grant_view' => 1,
-      'grant_update' => 0,
-      'grant_delete' => 0,
-    ))
-    ->execute();*/
+function kraken_schema() {
+  $schema['kraken'] = array(
+    'description' => 'This is table logs kraken operations',
+    'fields' => array(
+      'kid' => array(
+        'description' => 'kraken ID number',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'fid' => array(
+        'description' => 'fid from the file_managed table',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'ops' => array(
+        'description' => 'Operations carried out on image prior to submission to kraken',
+        'type' => 'blob',
+        'size' => 'big',
+        'not null' => TRUE,
+      ),
+      'original_size' => array(
+        'description' => 'Original image size in bytes',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'kraked_size' => array(
+        'description' => "Krak'd size",
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'saved_bytes' => array(
+        'description' => 'Amount of data saved',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'timestamp' => array(
+        'description' => 'Unix timestamp of when the file was returned from kraken.io',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'uid' => array(
+        'description' => 'User who submitted the kraken job',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'primary key' => array('kid'),
+  );
+  return $schema;
 }
 
 /**
