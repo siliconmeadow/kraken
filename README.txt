@@ -1,3 +1,12 @@
+CONTENTS OF THIS FILE
+=====================
+* INTRODUCTION
+* REQUIREMENTS
+* INSTALLATION
+* CONFIGURATION
+* UPGRADING
+* TODO
+
 INTRODUCTION
 ============
 This module allows image files to be optimised using the Kraken.io web service
@@ -46,6 +55,11 @@ https://api.drupal.org/api/drupal/modules%21image%21image.module/function/theme_
 Read more about 'Working with images in Drupal 7 and 8, here:
 
 https://drupal.org/documentation/modules/image
+
+UPGRADING
+=========
+If you are upgrading from 7.x-1.x-alpha1, please run update.php to create the
+logging table.
 
 TODO
 ====

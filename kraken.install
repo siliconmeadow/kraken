@@ -79,7 +79,7 @@ function kraken_uninstall() {
 }
 
 /**
- * Implements hook_update_N().
+ * Adds the kraken logging table.
  */
 function kraken_update_7100() {
   $schema['kraken'] = array(
