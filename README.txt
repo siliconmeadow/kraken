@@ -49,11 +49,9 @@ https://drupal.org/documentation/modules/image
 
 TODO
 ====
-1. Update the installation and configuration instructions in this file, so
-   people know what to do.
-2. Display brief instructions on /admin/config/media/image-toolkit to explain
+1. Display brief instructions on /admin/config/media/image-toolkit to explain
    where/how to set up an account on kraken.io
-3. Provide checkboxes for collecting kraken data in watchdog and the kraken
+2. Provide checkboxes for collecting kraken data in watchdog and the kraken
    table.
 3. Download/install kraken-php library using drush
 4. Log kraken operations against the managed files
