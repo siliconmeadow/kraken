@@ -176,6 +176,7 @@ function kraken_optimize(&$image, $data) {
     $result = drupal_http_request($data['kraked_url']);
     if (!isset($result->error)) {
       file_unmanaged_save_data($result->data, $image->source, FILE_EXISTS_REPLACE);
+      // @todo: check to see if watchdog entries are enabled for kraken
       watchdog('kraken.io', '@file_name was successfully processed by Kraken.io.
         Original size: @original_size; Kraked size: @kraked_size; Total saved:
         @saved_bytes. All figures in bytes', array(
@@ -185,7 +186,21 @@ function kraken_optimize(&$image, $data) {
             '@saved_byes' => $data['saved_bytes'],
           )
         );
-      // dsm('Kraken optimised image'); // could do with a watchdog message here
+      
+      // @todo: check to see if logging of kraken operations against files is set
+      
+      global $user;
+      if (0 ==1) {
+        db_insert('kraken')->fields(array(
+          'fid' => $image->fid,
+          'ops' => serialize($image->ops),
+          'original_size' => $data['original_size'],
+          'kraked_size' => $data['kraked_size'],
+          'saved_bytes' => $data['saved_bytes'],
+          'timestamp' => time(),
+          'uid' => $user->uid,
+        ))->execute();
+      }
       return TRUE;
     }
   }
