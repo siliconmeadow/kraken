@@ -24,10 +24,12 @@ INSTALLATION
   https://drupal.org/documentation/install/modules-themes/modules-7
   for further information.
 
- * Install the kraken-php library from https://github.com/kraken-io/kraken-php.
-  Copying the whole of the kraken-php library into /sites/all/libraries is
-  sufficient. The absolute requirement is that the file called 'Kraken.php' is
-  available at /sites/all/libraries/kraken-php/lib/.
+ * Install the kraken-php library. The easiest method is to use 'drush kraken'.
+  If you don't have access to drush then you need to get the kraken-php library
+  from https://github.com/kraken-io/kraken-php. Copying the whole of the
+  kraken-php library into /sites/all/libraries is sufficient. The absolute
+  requirement is that the file called 'Kraken.php' is available at
+  /sites/all/libraries/kraken-php/lib/.
 
 CONFIGURATION
 =============
@@ -63,9 +65,11 @@ logging table.
 
 TODO
 ====
-1. Display brief instructions on /admin/config/media/image-toolkit to explain
+1. Set up tests.
+2. Display brief instructions on /admin/config/media/image-toolkit to explain
    where/how to set up an account on kraken.io
-2. Provide checkboxes for collecting kraken data in watchdog and the kraken
+3. Provide checkboxes for collecting kraken data in watchdog and the kraken
    table.
-3. Download/install kraken-php library using drush
 4. Log kraken operations against the managed files
+5. Provide info on the status and version of the kraken-php library on the
+   status page.

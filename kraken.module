@@ -127,8 +127,6 @@ function kraken_image_effect_info() {
  * Callback to optimize the image with the kraken.io service.
  */
 function kraken_optimize(&$image, $data) {
-  //dpm($image);
-  //dpm($data);
 
   $libraries = libraries_detect('kraken-php');
   if (isset($libraries['error'])) {
@@ -166,9 +164,6 @@ function kraken_optimize(&$image, $data) {
     'wait' => TRUE,
     'lossy' => TRUE,
   );
-
-  //dpm($kraken);
-  //dpm($params);
   
   $data = $kraken->upload($params);
   
@@ -187,20 +182,6 @@ function kraken_optimize(&$image, $data) {
           )
         );
       
-      // @todo: check to see if logging of kraken operations against files is set
-      
-      global $user;
-      if (0 ==1) {
-        db_insert('kraken')->fields(array(
-          'fid' => $image->fid,
-          'ops' => serialize($image->ops),
-          'original_size' => $data['original_size'],
-          'kraked_size' => $data['kraked_size'],
-          'saved_bytes' => $data['saved_bytes'],
-          'timestamp' => time(),
-          'uid' => $user->uid,
-        ))->execute();
-      }
       return TRUE;
     }
   }
